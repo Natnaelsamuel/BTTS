@@ -1,3 +1,4 @@
+from django.db.models import Q
 from drf_spectacular.utils import OpenApiExample, extend_schema, inline_serializer
 from rest_framework import generics, permissions
 from rest_framework import serializers
@@ -84,6 +85,44 @@ class MeAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserListAPIView(generics.ListAPIView):
+    serializer_class = UserSummarySerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+    def get_queryset(self):
+        queryset = self.request.user.__class__.objects.all().order_by("id")
+
+        role = self.request.query_params.get("role")
+        if role:
+            queryset = queryset.filter(role=role)
+
+        return queryset
+
+
+class UserSearchAPIView(generics.ListAPIView):
+    serializer_class = UserSummarySerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+    def get_queryset(self):
+        queryset = self.request.user.__class__.objects.all().order_by("id")
+
+        query = self.request.query_params.get("q", "").strip()
+        role = self.request.query_params.get("role")
+
+        if query:
+            queryset = queryset.filter(
+                Q(username__icontains=query)
+                | Q(email__icontains=query)
+                | Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+            )
+
+        if role:
+            queryset = queryset.filter(role=role)
+
+        return queryset
 
 
 class AdminOnlyCheckAPIView(APIView):

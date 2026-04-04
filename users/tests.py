@@ -108,3 +108,69 @@ class AuthenticationAPITests(APITestCase):
         self.client.force_authenticate(user=driver_user)
         allowed_response = self.client.get("/api/auth/driver-check/")
         self.assertEqual(allowed_response.status_code, status.HTTP_200_OK)
+
+    def test_admin_can_list_users(self):
+        admin_user = User.objects.create_user(
+            username="admin_list",
+            email="admin_list@example.com",
+            password="strongPass123",
+            role=UserRole.ADMIN,
+        )
+        User.objects.create_user(
+            username="passenger_list",
+            email="passenger_list@example.com",
+            password="strongPass123",
+            role=UserRole.PASSENGER,
+        )
+
+        self.client.force_authenticate(user=admin_user)
+        response = self.client.get("/api/auth/users/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 2)
+
+    def test_admin_can_search_users(self):
+        admin_user = User.objects.create_user(
+            username="admin_search",
+            email="admin_search@example.com",
+            password="strongPass123",
+            role=UserRole.ADMIN,
+        )
+        User.objects.create_user(
+            username="driver_search",
+            email="driver_search@example.com",
+            password="strongPass123",
+            first_name="John",
+            role=UserRole.DRIVER,
+        )
+        User.objects.create_user(
+            username="passenger_search",
+            email="passenger_search@example.com",
+            password="strongPass123",
+            first_name="Jane",
+            role=UserRole.PASSENGER,
+        )
+
+        self.client.force_authenticate(user=admin_user)
+        response = self.client.get("/api/auth/users/search/?q=driver")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = [item["username"] for item in response.data]
+        self.assertIn("driver_search", usernames)
+        self.assertNotIn("passenger_search", usernames)
+
+    def test_non_admin_cannot_list_or_search_users(self):
+        passenger = User.objects.create_user(
+            username="passenger_denied",
+            email="passenger_denied@example.com",
+            password="strongPass123",
+            role=UserRole.PASSENGER,
+        )
+
+        self.client.force_authenticate(user=passenger)
+        list_response = self.client.get("/api/auth/users/")
+        search_response = self.client.get("/api/auth/users/search/?q=admin")
+
+        self.assertEqual(list_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(search_response.status_code,
+                         status.HTTP_403_FORBIDDEN)

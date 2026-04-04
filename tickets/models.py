@@ -34,7 +34,10 @@ class Ticket(models.Model):
         ordering = ["-booked_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["trip", "seat"], name="unique_trip_seat_ticket"),
+                fields=["trip", "seat"],
+                condition=models.Q(status=TicketStatus.BOOKED),
+                name="unique_trip_seat_ticket",
+            ),
         ]
 
     def __str__(self) -> str:

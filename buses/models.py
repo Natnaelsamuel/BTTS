@@ -1,3 +1,5 @@
+# pylint: disable=no-member
+
 from django.db import models
 
 
@@ -9,6 +11,16 @@ class Bus(models.Model):
 
     class Meta:
         ordering = ["plate_number"]
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new and self.capacity > 0:
+            Seat.objects.bulk_create(
+                [Seat(bus=self, seat_number=str(i))
+                 for i in range(1, self.capacity + 1)]
+            )
 
     def __str__(self) -> str:
         return str(self.plate_number)

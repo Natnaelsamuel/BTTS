@@ -5,6 +5,13 @@ from routes.models import Route
 from users.models import User, UserRole
 
 
+class TripStatus(models.TextChoices):
+    SCHEDULED = "SCHEDULED", "Scheduled"
+    IN_PROGRESS = "IN_PROGRESS", "In Progress"
+    COMPLETED = "COMPLETED", "Completed"
+    CANCELLED = "CANCELLED", "Cancelled"
+
+
 class Trip(models.Model):
     bus = models.ForeignKey(
         Bus, on_delete=models.PROTECT, related_name="trips")
@@ -18,6 +25,8 @@ class Trip(models.Model):
         related_name="driven_trips",
         limit_choices_to={"role": UserRole.DRIVER},
     )
+    status = models.CharField(
+        max_length=20, choices=TripStatus.choices, default=TripStatus.SCHEDULED)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

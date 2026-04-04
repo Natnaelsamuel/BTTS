@@ -21,6 +21,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
+    path('api/admin/buses/', include('buses.urls')),
+    path('api/buses/', include('buses.public_urls')),
+    path('api/admin/routes/', include('routes.urls')),
+    path('api/admin/trips/', include('trips.admin_urls')),
+    path('api/passenger/trips/', include('trips.passenger_urls')),
+    path('api/passenger/tickets/', include('tickets.urls')),
+    path('api/driver/trips/', include('trips.driver_urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'),
          name='swagger-ui'),
