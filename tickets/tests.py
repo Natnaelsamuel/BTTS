@@ -23,11 +23,13 @@ class StepTwoModelTests(TestCase):
     def setUp(self):
         self.driver = User.objects.create_user(
             username="driver1",
+            email="driver1@example.com",
             password="password123",
             role=UserRole.DRIVER,
         )
         self.passenger = User.objects.create_user(
             username="passenger1",
+            email="passenger1@example.com",
             password="password123",
             role=UserRole.PASSENGER,
         )
