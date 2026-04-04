@@ -35,8 +35,7 @@ class StepTwoModelTests(TestCase):
         )
 
         self.bus = Bus.objects.create(plate_number="KAA-111A", capacity=50)
-        self.seat_1 = Seat.objects.create(bus=self.bus, seat_number="1")
-        Seat.objects.create(bus=self.bus, seat_number="2")
+        self.seat_1 = Seat.objects.get(bus=self.bus, seat_number="1")
 
         self.route = Route.objects.create(
             origin="Nairobi", destination="Mombasa", distance=Decimal("480.50"))
@@ -125,7 +124,7 @@ class StepTwoModelTests(TestCase):
 
     def test_seat_from_different_bus_is_currently_allowed_for_ticket(self):
         other_bus = Bus.objects.create(plate_number="KBB-222B", capacity=40)
-        other_seat = Seat.objects.create(bus=other_bus, seat_number="1")
+        other_seat = Seat.objects.get(bus=other_bus, seat_number="1")
 
         ticket = Ticket.objects.create(
             user=self.passenger, trip=self.trip, seat=other_seat)

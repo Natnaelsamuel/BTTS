@@ -91,4 +91,4 @@ class PassengerTicketAPITests(APITestCase):
             {"trip_id": self.trip.id, "seat_id": other_seat.id},
             format="json",
         )
-       
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

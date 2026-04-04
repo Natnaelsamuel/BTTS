@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from buses.models import Seat
@@ -19,6 +21,7 @@ class PaymentStatus(models.TextChoices):
 
 
 class Ticket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="tickets")
     trip = models.ForeignKey(
@@ -45,6 +48,7 @@ class Ticket(models.Model):
 
 
 class Payment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticket = models.OneToOneField(
         Ticket, on_delete=models.CASCADE, related_name="payment")
     amount = models.DecimalField(max_digits=10, decimal_places=2)

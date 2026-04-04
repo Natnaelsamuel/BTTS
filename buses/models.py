@@ -1,9 +1,12 @@
 # pylint: disable=no-member
 
+import uuid
+
 from django.db import models
 
 
 class Bus(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     plate_number = models.CharField(max_length=30, unique=True)
     capacity = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -13,7 +16,8 @@ class Bus(models.Model):
         ordering = ["plate_number"]
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
+        # UUID primary keys are assigned before first save, so rely on state.
+        is_new = self._state.adding
         super().save(*args, **kwargs)
 
         if is_new and self.capacity > 0:

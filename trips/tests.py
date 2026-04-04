@@ -141,4 +141,4 @@ class CoreTripAPITests(APITestCase):
         response = self.client.delete(f"/api/admin/trips/{self.trip.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Trip.objects.filter(pk=self.trip.i
+        self.assertFalse(Trip.objects.filter(pk=self.trip.id).exists())

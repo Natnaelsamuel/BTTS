@@ -1,9 +1,12 @@
+import uuid
+
 from django.db import models
 
 from trips.models import Trip
 
 
 class Location(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     trip = models.ForeignKey(
         Trip, on_delete=models.CASCADE, related_name="locations")
     latitude = models.DecimalField(max_digits=9, decimal_places=6)

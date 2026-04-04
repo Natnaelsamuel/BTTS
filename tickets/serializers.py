@@ -21,15 +21,15 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketBookingSerializer(serializers.Serializer):
-    trip_id = serializers.IntegerField()
+    trip_id = serializers.UUIDField()
     seat_id = serializers.IntegerField()
 
     def validate(self, attrs):
-        trip = Trip._default_manager.filter(pk=attrs["trip_id"]).first()
+        trip = Trip.objects.filter(pk=attrs["trip_id"]).first()
         if trip is None:
             raise serializers.ValidationError({"trip_id": "Trip not found."})
 
-        seat = Seat._default_manager.filter(pk=attrs["seat_id"]).first()
+        seat = Seat.objects.filter(pk=attrs["seat_id"]).first()
         if seat is None:
             raise serializers.ValidationError({"seat_id": "Seat not found."})
 

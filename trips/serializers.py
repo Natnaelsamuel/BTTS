@@ -45,7 +45,7 @@ class TripSerializer(serializers.ModelSerializer):
 
 
 class TripAssignDriverSerializer(serializers.Serializer):
-    driver_id = serializers.IntegerField()
+    driver_id = serializers.UUIDField()
 
     def validate_driver_id(self, value):
         try:
