@@ -11,7 +11,9 @@ class BusSerializer(serializers.ModelSerializer):
 
 
 class SeatSerializer(serializers.ModelSerializer):
+    is_available = serializers.BooleanField(read_only=True, default=True)
+
     class Meta:
         model = Seat
-        fields = ["id", "bus", "seat_number"]
+        fields = ["id", "bus", "seat_number", "is_available"]
         read_only_fields = ["id"]
