@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/passenger/trips/', include('trips.passenger_urls')),
     path('api/passenger/tickets/', include('tickets.urls')),
     path('api/driver/trips/', include('trips.driver_urls')),
+    path('api/tracking/', include('tracking.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'),
          name='swagger-ui'),
