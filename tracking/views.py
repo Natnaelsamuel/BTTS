@@ -43,7 +43,8 @@ class TripCurrentLocationAPIView(APIView):
         if not Trip.objects.filter(pk=trip_id).exists():
             raise NotFound("Trip not found.")
 
-        location = Location.objects.filter(trip_id=trip_id).order_by("-timestamp").first()
+        location = Location.objects.filter(
+            trip_id=trip_id).order_by("-timestamp").first()
         if location is None:
             raise NotFound("No location found for this trip.")
 

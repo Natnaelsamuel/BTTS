@@ -106,24 +106,24 @@ Booking request body:
 
 ```json
 {
-	"trip_id": "<trip_uuid>",
-	"seat_id": 1
+  "trip_id": "<trip_uuid>",
+  "seat_id": 1
 }
 ```
 
 ### Tracking (Step 6)
 
 - Driver location update:
-	- `POST /api/tracking/trips/<trip_id>/location/`
+  - `POST /api/tracking/trips/<trip_id>/location/`
 - Current trip location:
-	- `GET /api/tracking/trips/<trip_id>/current-location/`
+  - `GET /api/tracking/trips/<trip_id>/current-location/`
 
 Driver location update body:
 
 ```json
 {
-	"latitude": "-1.292100",
-	"longitude": "36.821900"
+  "latitude": "-1.292100",
+  "longitude": "36.821900"
 }
 ```
 
