@@ -6,7 +6,7 @@ from rest_framework import serializers
 from buses.models import Seat
 from trips.models import Trip, TripStatus
 
-from .models import Ticket
+from .models import Payment, Ticket
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -63,3 +63,37 @@ class TicketCancelSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError("TicketCancelSerializer is input-only.")
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = [
+            "id",
+            "ticket",
+            "amount",
+            "currency",
+            "provider",
+            "status",
+            "tx_ref",
+            "checkout_url",
+            "paid_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class PaymentInitSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=1)
+    currency = serializers.CharField(required=False, default="ETB", max_length=10)
+    return_url = serializers.URLField(required=False)
+
+    def validate_currency(self, value):
+        return value.upper()
+
+    def create(self, validated_data):
+        raise NotImplementedError("PaymentInitSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError("PaymentInitSerializer is input-only.")

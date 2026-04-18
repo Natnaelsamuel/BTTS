@@ -51,7 +51,7 @@ class BusSeatListAPIView(generics.ListAPIView):
             booked_ticket_exists = Ticket.objects.filter(
                 trip__bus_id=bus.id,
                 seat_id=OuterRef("pk"),
-                status=TicketStatus.BOOKED,
+                status__in=[TicketStatus.RESERVED, TicketStatus.BOOKED],
             )
             return queryset.annotate(is_available=~Exists(booked_ticket_exists))
 
@@ -62,7 +62,7 @@ class BusSeatListAPIView(generics.ListAPIView):
         booked_ticket_exists = Ticket.objects.filter(
             trip_id=trip_id,
             seat_id=OuterRef("pk"),
-            status=TicketStatus.BOOKED,
+            status__in=[TicketStatus.RESERVED, TicketStatus.BOOKED],
         )
 
         return queryset.annotate(is_available=~Exists(booked_ticket_exists))

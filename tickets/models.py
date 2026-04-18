@@ -8,6 +8,7 @@ from users.models import User
 
 
 class TicketStatus(models.TextChoices):
+    RESERVED = "RESERVED", "Reserved"
     BOOKED = "BOOKED", "Booked"
     CANCELLED = "CANCELLED", "Cancelled"
     USED = "USED", "Used"
@@ -20,6 +21,10 @@ class PaymentStatus(models.TextChoices):
     REFUNDED = "REFUNDED", "Refunded"
 
 
+class PaymentProvider(models.TextChoices):
+    CHAPA = "CHAPA", "Chapa"
+
+
 class Ticket(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -29,7 +34,8 @@ class Ticket(models.Model):
     seat = models.ForeignKey(
         Seat, on_delete=models.PROTECT, related_name="tickets")
     status = models.CharField(
-        max_length=20, choices=TicketStatus.choices, default=TicketStatus.BOOKED)
+        max_length=20, choices=TicketStatus.choices, default=TicketStatus.RESERVED)
+    reserved_until = models.DateTimeField(null=True, blank=True)
     booked_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,7 +44,7 @@ class Ticket(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["trip", "seat"],
-                condition=models.Q(status=TicketStatus.BOOKED),
+                condition=models.Q(status__in=[TicketStatus.RESERVED, TicketStatus.BOOKED]),
                 name="unique_trip_seat_ticket",
             ),
         ]
@@ -54,6 +60,13 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
         max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    provider = models.CharField(
+        max_length=20, choices=PaymentProvider.choices, default=PaymentProvider.CHAPA
+    )
+    tx_ref = models.CharField(max_length=120, unique=True, null=True, blank=True)
+    currency = models.CharField(max_length=10, default="ETB")
+    checkout_url = models.URLField(blank=True)
+    raw_response = models.JSONField(default=dict, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

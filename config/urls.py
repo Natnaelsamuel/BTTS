@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/admin/trips/', include('trips.admin_urls')),
     path('api/passenger/trips/', include('trips.passenger_urls')),
     path('api/passenger/tickets/', include('tickets.urls')),
+    path('api/payments/', include('tickets.payment_urls')),
     path('api/driver/trips/', include('trips.driver_urls')),
     path('api/tracking/', include('tracking.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
