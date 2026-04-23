@@ -46,6 +46,7 @@ class TicketPaymentAPITests(APITestCase):
             route=self.route,
             departure_time=departure,
             arrival_time=arrival,
+            fare=Decimal("250.00"),
             driver=self.driver,
         )
 
@@ -69,7 +70,7 @@ class TicketPaymentAPITests(APITestCase):
         self.client.force_authenticate(user=self.passenger)
         response = self.client.post(
             f"/api/passenger/tickets/{self.ticket.id}/pay/",
-            {"amount": "250.00", "currency": "ETB", "return_url": "http://localhost:5173/result"},
+            {"return_url": "http://localhost:5173/result"},
             format="json",
         )
 
@@ -92,7 +93,7 @@ class TicketPaymentAPITests(APITestCase):
             }
             self.client.post(
                 f"/api/passenger/tickets/{self.ticket.id}/pay/",
-                {"amount": "250.00", "currency": "ETB"},
+                {},
                 format="json",
             )
 
@@ -128,7 +129,7 @@ class TicketPaymentAPITests(APITestCase):
             }
             self.client.post(
                 f"/api/passenger/tickets/{self.ticket.id}/pay/",
-                {"amount": "250.00", "currency": "ETB"},
+                {},
                 format="json",
             )
 
@@ -164,7 +165,7 @@ class TicketPaymentAPITests(APITestCase):
             }
             self.client.post(
                 f"/api/passenger/tickets/{self.ticket.id}/pay/",
-                {"amount": "250.00", "currency": "ETB"},
+                {},
                 format="json",
             )
 
@@ -199,7 +200,7 @@ class TicketPaymentAPITests(APITestCase):
             }
             self.client.post(
                 f"/api/passenger/tickets/{self.ticket.id}/pay/",
-                {"amount": "250.00", "currency": "ETB"},
+                {},
                 format="json",
             )
 
@@ -234,7 +235,7 @@ class TicketPaymentAPITests(APITestCase):
             }
             self.client.post(
                 f"/api/passenger/tickets/{self.ticket.id}/pay/",
-                {"amount": "250.00", "currency": "ETB"},
+                {},
                 format="json",
             )
 

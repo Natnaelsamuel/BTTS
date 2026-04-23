@@ -33,6 +33,7 @@ class Ticket(models.Model):
         Trip, on_delete=models.CASCADE, related_name="tickets")
     seat = models.ForeignKey(
         Seat, on_delete=models.PROTECT, related_name="tickets")
+    fare_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     status = models.CharField(
         max_length=20, choices=TicketStatus.choices, default=TicketStatus.RESERVED)
     reserved_until = models.DateTimeField(null=True, blank=True)

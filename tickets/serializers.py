@@ -14,10 +14,10 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ["id", "user", "trip", "seat", "status",
+        fields = ["id", "user", "trip", "seat", "fare_amount", "status",
                   "trip_status", "booked_at", "updated_at"]
         read_only_fields = ["id", "user",
-                            "trip_status", "booked_at", "updated_at"]
+                    "trip_status", "fare_amount", "booked_at", "updated_at"]
 
 
 class TicketBookingSerializer(serializers.Serializer):
@@ -85,12 +85,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentInitSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=1)
-    currency = serializers.CharField(required=False, default="ETB", max_length=10)
     return_url = serializers.URLField(required=False)
-
-    def validate_currency(self, value):
-        return value.upper()
 
     def create(self, validated_data):
         raise NotImplementedError("PaymentInitSerializer is input-only.")

@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 from django.db import models
 
@@ -22,6 +23,7 @@ class Trip(models.Model):
         Route, on_delete=models.PROTECT, related_name="trips")
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+    fare = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     driver = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

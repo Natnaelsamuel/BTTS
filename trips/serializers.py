@@ -25,6 +25,7 @@ class TripSerializer(serializers.ModelSerializer):
             "route_label",
             "departure_time",
             "arrival_time",
+            "fare",
             "driver",
             "driver_username",
             "status",

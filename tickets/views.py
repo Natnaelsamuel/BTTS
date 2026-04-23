@@ -62,6 +62,7 @@ class PassengerTicketViewSet(
                     user=request.user,
                     trip=booking_serializer.validated_data["trip"],
                     seat=booking_serializer.validated_data["seat"],
+                    fare_amount=booking_serializer.validated_data["trip"].fare,
                     status=TicketStatus.RESERVED,
                     reserved_until=timezone.now()
                     + timedelta(minutes=settings.TICKET_RESERVATION_MINUTES),
@@ -96,14 +97,21 @@ class PassengerTicketViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        amount = ticket.fare_amount if ticket.fare_amount is not None else ticket.trip.fare
+        if amount is None or amount <= 0:
+            return Response(
+                {"detail": "Trip fare is not configured. Contact support."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         tx_ref = f"BTTS-{ticket.id}-{uuid4().hex[:8]}"
         return_url = serializer.validated_data.get("return_url") or "http://localhost:5173/payment-result"
         callback_url = request.build_absolute_uri(reverse("chapa_webhook"))
 
         try:
             chapa_response = initialize_chapa_payment(
-                amount=serializer.validated_data["amount"],
-                currency=serializer.validated_data["currency"],
+                amount=amount,
+                currency="ETB",
                 email=request.user.email,
                 first_name=request.user.first_name or request.user.username,
                 last_name=request.user.last_name or "User",
@@ -120,8 +128,8 @@ class PassengerTicketViewSet(
         payment, _ = Payment.objects.update_or_create(
             ticket=ticket,
             defaults={
-                "amount": serializer.validated_data["amount"],
-                "currency": serializer.validated_data["currency"],
+                "amount": amount,
+                "currency": "ETB",
                 "provider": PaymentProvider.CHAPA,
                 "status": PaymentStatus.PENDING,
                 "tx_ref": tx_ref,
