@@ -7,8 +7,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from buses.models import Bus
+from buses.models import Bus, Seat
 from routes.models import Route
+from tickets.models import Ticket, TicketStatus
 from users.models import User, UserRole
 
 from .models import Trip, TripStatus
@@ -46,6 +47,14 @@ class CoreTripAPITests(APITestCase):
             route=self.route,
             departure_time=departure,
             arrival_time=arrival,
+            driver=self.driver,
+        )
+        past_departure = timezone.now() - timedelta(days=1)
+        self.past_trip = Trip.objects.create(
+            bus=self.bus,
+            route=self.route,
+            departure_time=past_departure,
+            arrival_time=past_departure + timedelta(hours=6),
             driver=self.driver,
         )
 
@@ -110,6 +119,46 @@ class CoreTripAPITests(APITestCase):
         self.assertEqual(filtered.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(filtered.data), 1)
 
+    def test_public_can_browse_trips_but_not_booked_seats(self):
+        self.client.force_authenticate(user=None)
+
+        list_response = self.client.get("/api/passenger/trips/")
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(list_response.data), 1)
+
+        detail_response = self.client.get(
+            f"/api/passenger/trips/{self.trip.id}/")
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+
+        booked_seats_response = self.client.get(
+            f"/api/passenger/trips/{self.trip.id}/booked-seats/"
+        )
+        self.assertEqual(booked_seats_response.status_code,
+                         status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated_passenger_can_view_booked_seats(self):
+        self.client.force_authenticate(user=self.passenger)
+        response = self.client.get(
+            f"/api/passenger/trips/{self.trip.id}/booked-seats/"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("booked_seats", response.data)
+
+    def test_past_trips_are_hidden_from_browse_endpoints(self):
+        self.client.force_authenticate(user=None)
+
+        list_response = self.client.get("/api/passenger/trips/")
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+
+        returned_ids = {item["id"] for item in list_response.data}
+        self.assertIn(str(self.trip.id), returned_ids)
+        self.assertNotIn(str(self.past_trip.id), returned_ids)
+
+        old_trip_response = self.client.get(
+            f"/api/passenger/trips/{self.past_trip.id}/")
+        self.assertEqual(old_trip_response.status_code,
+                         status.HTTP_404_NOT_FOUND)
+
     def test_driver_can_view_assigned_trips_and_update_status(self):
         self.client.force_authenticate(user=self.driver)
 
@@ -142,3 +191,39 @@ class CoreTripAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Trip.objects.filter(pk=self.trip.id).exists())
+
+    def test_admin_can_cancel_trip_and_expire_passenger_tickets(self):
+        seat = Seat.objects.get(bus=self.bus, seat_number="1")
+        ticket = Ticket.objects.create(
+            user=self.passenger,
+            trip=self.trip,
+            seat=seat,
+            status=TicketStatus.BOOKED,
+        )
+        self.client.force_authenticate(user=self.admin)
+
+        response = self.client.post(
+            f"/api/admin/trips/{self.trip.id}/cancel/",
+            {"reason": "Operational issue"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["status"], TripStatus.CANCELLED)
+        self.trip.refresh_from_db()
+        self.assertEqual(self.trip.status, TripStatus.CANCELLED)
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.status, TicketStatus.CANCELLED)
+
+    def test_admin_cannot_cancel_completed_trip(self):
+        self.trip.status = TripStatus.COMPLETED
+        self.trip.save(update_fields=["status", "updated_at"])
+        self.client.force_authenticate(user=self.admin)
+
+        response = self.client.post(
+            f"/api/admin/trips/{self.trip.id}/cancel/",
+            {},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

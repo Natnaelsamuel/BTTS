@@ -24,9 +24,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate_role(self, value):
+        request = self.context.get("request")
+        # Prevent self-registration as ADMIN or DRIVER by non-admin users.
         if value == UserRole.ADMIN:
             raise serializers.ValidationError(
                 "Admin accounts cannot be self-registered.")
+        if value == UserRole.DRIVER:
+            # allow only when request is from an authenticated admin
+            if not request or not getattr(request, "user", None) or not getattr(request.user, "is_authenticated", False):
+                raise serializers.ValidationError(
+                    "Driver accounts cannot be self-registered. Contact an administrator.")
+            if getattr(request.user, "role", None) != UserRole.ADMIN:
+                raise serializers.ValidationError(
+                    "Driver accounts can only be created by an administrator.")
         return value
 
     def create(self, validated_data):
@@ -40,7 +50,31 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "role"]
+        fields = ["id", "username", "email", "first_name",
+                  "last_name", "role", "is_active", "must_change_password"]
+
+
+class UserDetailUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "first_name",
+                  "last_name", "role", "is_active", "must_change_password"]
+        read_only_fields = ["id", "username", "email", "role"]
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "is_active",
+            "must_change_password",
+        ]
+        read_only_fields = ["role", "is_active", "must_change_password"]
 
 
 class LoginResponseSerializer(serializers.Serializer):
@@ -53,6 +87,60 @@ class LoginResponseSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError("LoginResponseSerializer is output-only.")
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def create(self, validated_data):
+        raise NotImplementedError(
+            "PasswordResetRequestSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError(
+            "PasswordResetRequestSerializer is input-only.")
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(min_length=4, max_length=8)
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate(self, attrs):
+        return attrs
+
+    def create(self, validated_data):
+        raise NotImplementedError(
+            "PasswordResetConfirmSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError(
+            "PasswordResetConfirmSerializer is input-only.")
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError(
+            "ChangePasswordSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError(
+            "ChangePasswordSerializer is input-only.")
+
+
+class ForcePasswordResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def create(self, validated_data):
+        raise NotImplementedError(
+            "ForcePasswordResetSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError(
+            "ForcePasswordResetSerializer is input-only.")
 
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):
@@ -85,6 +173,11 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
         if not user:
             raise AuthenticationFailed(
                 "No active account found with the given credentials")
+
+        # Check if the account has been deactivated by admin
+        if not user.is_active:
+            raise AuthenticationFailed(
+                "Your account has been deactivated by the administrator. Please contact support.")
 
         refresh = RefreshToken.for_user(user)
         refresh["role"] = user.role

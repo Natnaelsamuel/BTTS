@@ -7,10 +7,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from trips.models import Trip
-from users.permissions import IsDriverRole
+from users.permissions import IsAdminRole, IsDriverRole
 
 from .models import Location
 from .serializers import LocationSerializer, LocationUpdateSerializer
+from .services import create_trip_location
 
 
 class DriverTripLocationUpdateAPIView(APIView):
@@ -26,13 +27,30 @@ class DriverTripLocationUpdateAPIView(APIView):
 
         serializer = LocationUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        location = Location.objects.create(
-            trip=trip,
-            latitude=serializer.validated_data["latitude"],
-            longitude=serializer.validated_data["longitude"],
+        return create_trip_location(
+            trip,
+            serializer.validated_data["latitude"],
+            serializer.validated_data["longitude"],
         )
-        return Response(LocationSerializer(location).data, status=status.HTTP_201_CREATED)
+
+
+class AdminTripLocationUpdateAPIView(APIView):
+    """Allow admins to push bus location for in-progress trips (demo / fallback)."""
+
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def post(self, request, trip_id):
+        trip = Trip.objects.filter(pk=trip_id).first()
+        if trip is None:
+            raise NotFound("Trip not found.")
+
+        serializer = LocationUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return create_trip_location(
+            trip,
+            serializer.validated_data["latitude"],
+            serializer.validated_data["longitude"],
+        )
 
 
 class TripCurrentLocationAPIView(APIView):

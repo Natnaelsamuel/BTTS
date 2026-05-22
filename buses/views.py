@@ -1,8 +1,11 @@
 # pylint: disable=no-member
 
+from django.db.models.deletion import ProtectedError
 from django.db.models import Exists, OuterRef
 from rest_framework import generics, viewsets
 from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from tickets.models import Ticket, TicketStatus
@@ -17,6 +20,15 @@ class AdminBusViewSet(viewsets.ModelViewSet):
     queryset = Bus.objects.all()
     serializer_class = BusSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"detail": "Cannot delete this bus because it has trips assigned to it."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class BusSeatListAPIView(generics.ListAPIView):

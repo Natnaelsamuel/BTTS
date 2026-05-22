@@ -14,6 +14,8 @@ class TripSerializer(serializers.ModelSerializer):
     route_label = serializers.SerializerMethodField()
     driver_username = serializers.CharField(
         source="driver.username", read_only=True)
+    bus_detail = serializers.SerializerMethodField()
+    route_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = Trip
@@ -21,8 +23,10 @@ class TripSerializer(serializers.ModelSerializer):
             "id",
             "bus",
             "bus_plate_number",
+            "bus_detail",
             "route",
             "route_label",
+            "route_detail",
             "departure_time",
             "arrival_time",
             "fare",
@@ -37,6 +41,20 @@ class TripSerializer(serializers.ModelSerializer):
 
     def get_route_label(self, obj):
         return f"{obj.route.origin} -> {obj.route.destination}"
+
+    def get_bus_detail(self, obj):
+        return {
+            "id": str(obj.bus_id),
+            "plate_number": obj.bus.plate_number,
+            "capacity": obj.bus.capacity,
+        }
+
+    def get_route_detail(self, obj):
+        return {
+            "id": str(obj.route_id),
+            "origin": obj.route.origin,
+            "destination": obj.route.destination,
+        }
 
     def validate_driver(self, value):
         if value.role != "DRIVER":
@@ -73,3 +91,13 @@ class TripStatusUpdateSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError("TripStatusUpdateSerializer is input-only.")
+
+
+class TripCancelSerializer(serializers.Serializer):
+    reason = serializers.CharField(required=False, allow_blank=True, max_length=500)
+
+    def create(self, validated_data):
+        raise NotImplementedError("TripCancelSerializer is input-only.")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError("TripCancelSerializer is input-only.")

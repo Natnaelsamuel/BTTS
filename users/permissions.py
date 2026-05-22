@@ -16,3 +16,12 @@ class IsDriverRole(BasePermission):
 class IsPassengerRole(BasePermission):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and request.user.role == UserRole.PASSENGER)
+
+
+class IsPassengerOrDriverRole(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role in {UserRole.PASSENGER, UserRole.DRIVER}
+        )

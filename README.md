@@ -39,6 +39,16 @@ Implemented through Step 6:
 ## Setup
 
 1. Copy `.env.example` to `.env` and set DB credentials.
+2. If you want password-reset OTPs to be delivered by email using Gmail, configure the Gmail SMTP values in `.env`:
+
+- `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`
+- `EMAIL_HOST=smtp.gmail.com`
+- `EMAIL_PORT=587`
+- `EMAIL_HOST_USER=yourgmailaddress@gmail.com`
+- `EMAIL_HOST_PASSWORD=your-gmail-app-password`
+- `EMAIL_USE_TLS=True`
+- Use a Gmail App Password if your account has 2-step verification enabled.
+
 2. Ensure PostgreSQL is running and database exists.
 3. Run migrations:
 
@@ -131,6 +141,29 @@ Notes:
 
 - Driver location is client-driven (frontend/mobile sends periodic GPS updates).
 - Backend stores every point and returns latest point as current location.
+
+### Admin Notifications
+
+- Create/broadcast notifications: `POST /api/admin/notifications/`
+- List notifications: `GET /api/admin/notifications/`
+- View notification delivery log: `GET /api/admin/notifications/logs/`
+
+Notification payload:
+
+```json
+{
+  "title": "Service update",
+  "message": "Your trip has been rescheduled.",
+  "audience": "ALL",
+  "target_user_id": "<uuid>"
+}
+```
+
+Notes:
+
+- Use `audience = ALL` to broadcast to every user.
+- Use `audience = PASSENGER`, `DRIVER`, or `ADMIN` to broadcast to a role.
+- Use `audience = USER` with `target_user_id` to send to one user only.
 
 ## IDs
 

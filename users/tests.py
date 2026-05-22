@@ -21,6 +21,20 @@ class AuthenticationAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(username="passenger001").exists())
 
+    def test_register_api_blocks_driver_role(self):
+        payload = {
+            "username": "driver_self",
+            "email": "driver_self@example.com",
+            "password": "strongPass123",
+            "role": UserRole.DRIVER,
+        }
+
+        response = self.client.post(
+            "/api/auth/register/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", response.data)
+
     def test_register_api_blocks_admin_role(self):
         payload = {
             "username": "admin001",
@@ -78,6 +92,58 @@ class AuthenticationAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["username"], "passenger002")
         self.assertEqual(response.data["role"], UserRole.PASSENGER)
+
+    def test_me_endpoint_updates_profile(self):
+        user = User.objects.create_user(
+            username="passenger_profile",
+            email="passenger_profile@example.com",
+            password="strongPass123",
+            role=UserRole.PASSENGER,
+        )
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(
+            "/api/auth/me/",
+            {
+                "first_name": "Abebe",
+                "last_name": "Kebede",
+                "email": "abebe.kebede@example.com",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["first_name"], "Abebe")
+        self.assertEqual(response.data["last_name"], "Kebede")
+        self.assertEqual(response.data["email"], "abebe.kebede@example.com")
+        self.assertEqual(response.data["role"], UserRole.PASSENGER)
+
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, "Abebe")
+
+    def test_me_endpoint_rejects_duplicate_email(self):
+        User.objects.create_user(
+            username="other_user",
+            email="taken@example.com",
+            password="strongPass123",
+            role=UserRole.PASSENGER,
+        )
+        user = User.objects.create_user(
+            username="profile_user",
+            email="profile_user@example.com",
+            password="strongPass123",
+            role=UserRole.PASSENGER,
+        )
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(
+            "/api/auth/me/",
+            {"email": "taken@example.com"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)
 
     def test_admin_permission_allows_admin_only(self):
         admin_user = User.objects.create_user(

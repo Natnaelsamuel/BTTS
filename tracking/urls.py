@@ -9,6 +9,11 @@ urlpatterns = [
         name="driver_trip_location_update",
     ),
     path(
+        "admin/trips/<uuid:trip_id>/location/",
+        views.AdminTripLocationUpdateAPIView.as_view(),
+        name="admin_trip_location_update",
+    ),
+    path(
         "trips/<uuid:trip_id>/current-location/",
         views.TripCurrentLocationAPIView.as_view(),
         name="trip_current_location",

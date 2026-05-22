@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 
 from buses.models import Bus
 from routes.models import Route
-from trips.models import Trip
+from trips.models import Trip, TripStatus
 from users.models import User, UserRole
 
 from .models import Location
@@ -35,6 +35,12 @@ class TrackingAPITests(APITestCase):
             password="strongPass123",
             role=UserRole.PASSENGER,
         )
+        self.admin = User.objects.create_user(
+            username="tracking_admin",
+            email="tracking_admin@example.com",
+            password="strongPass123",
+            role=UserRole.ADMIN,
+        )
 
         self.bus = Bus.objects.create(plate_number="KTR-101T", capacity=3)
         self.route = Route.objects.create(
@@ -51,6 +57,8 @@ class TrackingAPITests(APITestCase):
         )
 
     def test_assigned_driver_can_update_location(self):
+        self.trip.status = TripStatus.IN_PROGRESS
+        self.trip.save(update_fields=["status"])
         self.client.force_authenticate(user=self.driver)
         response = self.client.post(
             f"/api/tracking/trips/{self.trip.id}/location/",
@@ -81,7 +89,50 @@ class TrackingAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_driver_cannot_update_location_when_trip_not_in_progress(self):
+        self.client.force_authenticate(user=self.driver)
+        response = self.client.post(
+            f"/api/tracking/trips/{self.trip.id}/location/",
+            {"latitude": "-1.292100", "longitude": "36.821900"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_admin_can_update_location_for_in_progress_trip(self):
+        self.trip.status = TripStatus.IN_PROGRESS
+        self.trip.save(update_fields=["status"])
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(
+            f"/api/tracking/admin/trips/{self.trip.id}/location/",
+            {"latitude": "-1.280000", "longitude": "36.830000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Location.objects.filter(trip=self.trip).count(), 1)
+
+    def test_admin_cannot_update_location_when_trip_not_in_progress(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(
+            f"/api/tracking/admin/trips/{self.trip.id}/location/",
+            {"latitude": "-1.280000", "longitude": "36.830000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_passenger_cannot_use_admin_location_endpoint(self):
+        self.trip.status = TripStatus.IN_PROGRESS
+        self.trip.save(update_fields=["status"])
+        self.client.force_authenticate(user=self.passenger)
+        response = self.client.post(
+            f"/api/tracking/admin/trips/{self.trip.id}/location/",
+            {"latitude": "-1.280000", "longitude": "36.830000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_get_current_location_returns_latest_location(self):
+        self.trip.status = TripStatus.IN_PROGRESS
+        self.trip.save(update_fields=["status"])
         old_location = Location.objects.create(
             trip=self.trip,
             latitude=Decimal("-1.300000"),
@@ -91,9 +142,9 @@ class TrackingAPITests(APITestCase):
             timestamp=timezone.now() - timedelta(minutes=5)
         )
 
-        self.client.force_authenticate(user=self.driver)
+        self.client.force_authenticate(user=self.admin)
         self.client.post(
-            f"/api/tracking/trips/{self.trip.id}/location/",
+            f"/api/tracking/admin/trips/{self.trip.id}/location/",
             {"latitude": "-1.292100", "longitude": "36.821900"},
             format="json",
         )
