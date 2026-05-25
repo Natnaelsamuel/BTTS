@@ -2,6 +2,8 @@
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -9,6 +11,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserRole
 
 User = get_user_model()
+
+
+def _raise_password_validation_error(password: str, user=None, field_name: str = "password") -> None:
+    try:
+        validate_password(password, user=user)
+    except DjangoValidationError as exc:
+        raise serializers.ValidationError({field_name: exc.messages}) from exc
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -38,6 +47,16 @@ class RegisterSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Driver accounts can only be created by an administrator.")
         return value
+
+    def validate(self, attrs):
+        candidate = User(
+            username=attrs.get("username", ""),
+            email=attrs.get("email", ""),
+            first_name=attrs.get("first_name", ""),
+            last_name=attrs.get("last_name", ""),
+        )
+        _raise_password_validation_error(attrs["password"], user=candidate)
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -107,6 +126,8 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(min_length=8, write_only=True)
 
     def validate(self, attrs):
+        candidate = User(email=attrs.get("email", ""))
+        _raise_password_validation_error(attrs["new_password"], user=candidate, field_name="new_password")
         return attrs
 
     def create(self, validated_data):
@@ -122,6 +143,14 @@ class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(min_length=8, write_only=True)
 
+    def validate(self, attrs):
+        _raise_password_validation_error(
+            attrs["new_password"],
+            user=self.context.get("user"),
+            field_name="new_password",
+        )
+        return attrs
+
     def create(self, validated_data):
         raise NotImplementedError(
             "ChangePasswordSerializer is input-only.")
@@ -133,6 +162,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ForcePasswordResetSerializer(serializers.Serializer):
     new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate(self, attrs):
+        _raise_password_validation_error(
+            attrs["new_password"],
+            user=self.context.get("user"),
+            field_name="new_password",
+        )
+        return attrs
 
     def create(self, validated_data):
         raise NotImplementedError(

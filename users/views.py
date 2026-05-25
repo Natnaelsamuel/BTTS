@@ -290,7 +290,7 @@ class ChangePasswordAPIView(APIView):
         fields={"detail": serializers.CharField()},
     )})
     def post(self, request):
-        serializer = ChangePasswordSerializer(data=request.data)
+        serializer = ChangePasswordSerializer(data=request.data, context={"user": request.user})
         serializer.is_valid(raise_exception=True)
 
         user = request.user
@@ -319,7 +319,7 @@ class ForcePasswordResetAPIView(APIView):
         ), "user": UserSummarySerializer()},
     )})
     def post(self, request):
-        serializer = ForcePasswordResetSerializer(data=request.data)
+        serializer = ForcePasswordResetSerializer(data=request.data, context={"user": request.user})
         serializer.is_valid(raise_exception=True)
 
         user = request.user

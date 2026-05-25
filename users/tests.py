@@ -9,7 +9,7 @@ class AuthenticationAPITests(APITestCase):
         payload = {
             "username": "passenger001",
             "email": "passenger@example.com",
-            "password": "strongPass123",
+            "password": "StrongPass123!",
             "first_name": "Jane",
             "last_name": "Doe",
             "role": UserRole.PASSENGER,
@@ -25,7 +25,7 @@ class AuthenticationAPITests(APITestCase):
         payload = {
             "username": "driver_self",
             "email": "driver_self@example.com",
-            "password": "strongPass123",
+            "password": "StrongPass123!",
             "role": UserRole.DRIVER,
         }
 
@@ -39,7 +39,7 @@ class AuthenticationAPITests(APITestCase):
         payload = {
             "username": "admin001",
             "email": "admin@example.com",
-            "password": "strongPass123",
+            "password": "StrongPass123!",
             "role": UserRole.ADMIN,
         }
 
@@ -48,6 +48,20 @@ class AuthenticationAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("role", response.data)
+
+    def test_register_api_rejects_weak_password(self):
+        payload = {
+            "username": "passenger_weak",
+            "email": "weak@example.com",
+            "password": "weakpass",
+            "role": UserRole.PASSENGER,
+        }
+
+        response = self.client.post(
+            "/api/auth/register/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("password", response.data)
 
     def test_login_api_returns_jwt_tokens_and_user_payload(self):
         User.objects.create_user(
