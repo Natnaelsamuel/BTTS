@@ -1,13 +1,13 @@
-now# BTTS — Local setup manual (handoff)
+now# Zemen Bus — Local setup manual (handoff)
 
-This guide helps another team run **BTTS** on a Windows, macOS, or Linux laptop the same way you do in development: **Django API + PostgreSQL** in one repo, **Vite + React** in the other.
+This guide helps another team run **Zemen Bus** on a Windows, macOS, or Linux laptop the same way you do in development: **Django API + PostgreSQL** in one repo, **Vite + React** in the other.
 
 You need **two folders** (two repositories if you use Git):
 
 | Component | Typical folder | Role |
 |-----------|----------------|------|
-| Backend | `BTTS` | Django REST API, admin, database |
-| Frontend | `BTTS-frontend/bus-tracker-ui` | Passenger / driver / admin web UI |
+| Backend | `Zemen Bus` | Django REST API, admin, database |
+| Frontend | `ZemenBus-frontend/bus-tracker-ui` | Passenger / driver / admin web UI |
 
 ---
 
@@ -24,7 +24,7 @@ Install these on every machine:
 
 Optional but useful:
 
-- **pgAdmin** or another DB GUI to inspect `btts_db`.
+-- **pgAdmin** or another DB GUI to inspect `zemenbus_db`.
 - A code editor (**VS Code** / **Cursor**).
 
 ---
@@ -36,22 +36,22 @@ Optional but useful:
 
 ```sql
 -- Connect as superuser, e.g. psql -U postgres
-CREATE DATABASE btts_db;
-CREATE USER btts_user WITH PASSWORD 'your_secure_password';
-ALTER DATABASE btts_db OWNER TO btts_user;
-GRANT ALL PRIVILEGES ON DATABASE btts_db TO btts_user;
+CREATE DATABASE zemenbus_db;
+CREATE USER zemenbus_user WITH PASSWORD 'your_secure_password';
+ALTER DATABASE zemenbus_db OWNER TO zemenbus_user;
+GRANT ALL PRIVILEGES ON DATABASE zemenbus_db TO zemenbus_user;
 ```
 
-For the simplest local setup, you can keep the defaults in `.env` (`postgres` / `postgres` / `btts_db`) if your Postgres `postgres` user already has a password you know.
+For the simplest local setup, you can keep the defaults in `.env` (`postgres` / `postgres` / `zemenbus_db`) if your Postgres `postgres` user already has a password you know.
 
 ---
 
-## 3. Backend setup (`BTTS`)
+## 3. Backend setup (`Zemen Bus`)
 
 ### 3.1 Get the code
 
 ```bash
-cd BTTS
+cd ZemenBus
 ```
 
 ### 3.2 Virtual environment
@@ -76,7 +76,7 @@ pip install -r requirements.txt
 
 ### 3.3 Environment file
 
-1. Copy `.env.example` to `.env` in the **BTTS** project root (same folder as `manage.py`).
+1. Copy `.env.example` to `.env` in the **Zemen Bus** project root (same folder as `manage.py`).
 2. Edit `.env` and set at least:
    - `POSTGRES_*` to match the database you created.
    - `DJANGO_SECRET_KEY` to any long random string for local use.
@@ -103,12 +103,12 @@ python manage.py runserver 0.0.0.0:8000
 
 ---
 
-## 4. Frontend setup (`BTTS-frontend/bus-tracker-ui`)
+## 4. Frontend setup (`ZemenBus-frontend/bus-tracker-ui`)
 
 ### 4.1 Install dependencies
 
 ```bash
-cd BTTS-frontend/bus-tracker-ui
+cd ZemenBus-frontend/bus-tracker-ui
 npm install
 ```
 
@@ -204,7 +204,7 @@ For real SMTP, switch `EMAIL_BACKEND` and set `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL
 
 Give them:
 
-1. **Git URLs** (or zip) for **BTTS** and **BTTS-frontend**.
+1. **Git URLs** (or zip) for **Zemen Bus** and **ZemenBus-frontend**.
 2. This file **`SETUP.md`** and **`.env.example`** from the backend repo.
 3. Your **recommended Python and Node versions** (from `python --version` / `node --version` on your machine).
 4. Any **secrets** they should not commit (Chapa keys, production DB passwords) via a secure channel, not in email/chat.

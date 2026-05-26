@@ -1,4 +1,4 @@
-## BTTS Backend
+## Zemen Bus Backend
 
 Backend for the Bus Tracking and Ticketing System built with Django, Django REST Framework, JWT auth, and PostgreSQL.
 

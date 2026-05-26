@@ -214,7 +214,7 @@ class PasswordResetRequestAPIView(APIView):
         try:
             logger.info("Sending password reset OTP to %s", user.email)
             send_mail(
-                subject="Your BTTS password reset code",
+                subject="Your Zemen Bus password reset code",
                 message=(
                     f"Hello {user.username},\n\n"
                     f"Your one-time password reset code is: {otp_code}\n\n"
@@ -387,7 +387,7 @@ class AdminCreateDriverAPIView(generics.CreateAPIView):
         try:
             logger.info("Sending driver temporary password to %s", user.email)
             send_mail(
-                subject="BTTS: Your temporary driver password",
+                subject="Zemen Bus: Your temporary driver password",
                 message=(
                     f"Hello {user.first_name or user.username},\n\n"
                     f"An administrator created a driver account for you.\n\n"

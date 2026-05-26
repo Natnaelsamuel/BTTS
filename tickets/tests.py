@@ -252,4 +252,4 @@ class TicketPDFTests(TestCase):
         pdf_bytes = build_ticket_pdf(self.ticket)
         self.assertTrue(pdf_bytes.startswith(b"%PDF"))
         self.assertGreater(len(pdf_bytes), 1500)
-        self.assertIn(f"BTTS Ticket {self.ticket.id}".encode(), pdf_bytes)
+        self.assertIn(f"Zemen Bus Ticket {self.ticket.id}".encode(), pdf_bytes)

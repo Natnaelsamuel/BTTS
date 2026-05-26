@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: BTTS API
+  title: Zemen Bus API
   version: 1.0.0
   description: Bus Tracking and Ticketing System API documentation
 paths:

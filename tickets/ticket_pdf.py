@@ -59,7 +59,7 @@ def build_ticket_pdf(ticket) -> bytes:
     card_top = card_bottom + card_height
 
     pdf = canvas.Canvas(buffer, pagesize=A4)
-    pdf.setTitle(f"BTTS Ticket {ticket.id}")
+    pdf.setTitle(f"Zemen Bus Ticket {ticket.id}")
 
     passenger_name = ticket.user.get_full_name() or ticket.user.email or ticket.user.username
     origin = ticket.trip.route.origin
@@ -89,7 +89,7 @@ def build_ticket_pdf(ticket) -> bytes:
 
     pdf.setFillColor(colors.white)
     pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawString(margin + 10 * mm, card_top - 14 * mm, "BTTS")
+    pdf.drawString(margin + 10 * mm, card_top - 14 * mm, "Zemen Bus")
     pdf.setFont("Helvetica", 9)
     pdf.drawRightString(margin + card_width - 10 * mm, card_top - 11 * mm, "DIGITAL BOARDING PASS")
     pdf.setFont("Helvetica-Bold", 10)
@@ -222,5 +222,5 @@ def ticket_pdf_response(ticket):
 
     pdf_bytes = build_ticket_pdf(ticket)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="btts-ticket-{ticket.id}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="zemenbus-ticket-{ticket.id}.pdf"'
     return response

@@ -1,1 +1,1 @@
-"""Admin notifications app for BTTS."""
+"""Admin notifications app for Zemen Bus."""

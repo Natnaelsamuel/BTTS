@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'btts_db'),
+        'NAME': os.getenv('POSTGRES_DB', 'zemenbus_db'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
@@ -150,8 +150,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'BTTS API',
-    'DESCRIPTION': 'BTTS API documentation',
+    'TITLE': 'Zemen Bus API',
+    'DESCRIPTION': 'Zemen Bus API documentation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
@@ -169,7 +169,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL", "BTTS <no-reply@btts.local>")
+    "DEFAULT_FROM_EMAIL", "Zemen Bus <no-reply@zemenbus.local>")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 CHAPA_SECRET_KEY = os.getenv("CHAPA_SECRET_KEY", "")

@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("username",)
     fieldsets = UserAdmin.fieldsets + (
-        ("BTTS", {"fields": ("role", "must_change_password")}),
+        ("Zemen Bus", {"fields": ("role", "must_change_password")}),
     )
     add_fieldsets = (
         (

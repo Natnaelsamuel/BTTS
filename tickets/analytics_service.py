@@ -220,7 +220,7 @@ def build_analytics_csv(report: dict, report_type: str = "full") -> str:
     period = report["period"]
     summary = report["summary"]
 
-    writer.writerow(["BTTS Analytics Report"])
+    writer.writerow(["Zemen Bus Analytics Report"])
     writer.writerow(["Generated", timezone.now().strftime("%Y-%m-%d %H:%M:%S UTC")])
     writer.writerow(["Period (days)", period["days"]])
     writer.writerow(["From", period["start"]])

@@ -126,7 +126,7 @@ class PassengerTicketViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        tx_ref = f"BTTS-{ticket.id}-{uuid4().hex[:8]}"
+        tx_ref = f"ZEMENBUS-{ticket.id}-{uuid4().hex[:8]}"
         return_url = serializer.validated_data.get(
             "return_url") or "http://localhost:5173/payment-result"
         callback_url = request.build_absolute_uri(reverse("chapa_webhook"))
@@ -281,7 +281,7 @@ class AdminAnalyticsExportAPIView(APIView):
 
         report = build_analytics_report(days=days)
         csv_content = build_analytics_csv(report, report_type=report_type)
-        filename = f"btts-analytics-{report_type}-{days}d.csv"
+        filename = f"zemenbus-analytics-{report_type}-{days}d.csv"
         response = HttpResponse(csv_content, content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
