@@ -116,6 +116,16 @@ class PassengerTicketViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Chapa rejects disposable/test domains — validate the email looks real
+        email = request.user.email
+        blocked_domains = {"example.com", "example.org", "example.net", "test.com", "localhost"}
+        email_domain = email.split("@")[-1].lower() if "@" in email else ""
+        if email_domain in blocked_domains:
+            return Response(
+                {"detail": f"The email address '{email}' is not accepted by the payment provider. Please update your profile with a real email address."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -126,10 +136,15 @@ class PassengerTicketViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        tx_ref = f"ZEMENBUS-{ticket.id}-{uuid4().hex[:8]}"
+        # Chapa limits tx_ref to 50 characters.
+        # Format: "ZB-" (3) + last 12 chars of ticket UUID (12) + "-" (1) + 8 hex (8) = 24 chars
+        tx_ref = f"ZB-{str(ticket.id)[-12:]}-{uuid4().hex[:8]}"
         return_url = serializer.validated_data.get(
             "return_url") or "http://localhost:5173/payment-result"
         callback_url = request.build_absolute_uri(reverse("chapa_webhook"))
+
+        # Use phone number if the user model has one
+        phone_number = getattr(request.user, "phone_number", None) or getattr(request.user, "phone", None)
 
         try:
             chapa_response = initialize_chapa_payment(
@@ -141,6 +156,7 @@ class PassengerTicketViewSet(
                 tx_ref=tx_ref,
                 callback_url=callback_url,
                 return_url=return_url,
+                phone_number=phone_number,
             )
         except RuntimeError as exc:  # pragma: no cover
             return Response(
